@@ -1,0 +1,12 @@
+{
+  "status": "sent",
+  "mode": "live",
+  "run_id": "2c99136e1810",
+  "date": "2026-10-06",
+  "report_status": "ranked",
+  "payload_sha256": "cd179091db1b250616f5a38b92807c438aaacd2223d577ef82a387026a05bacf",
+  "receipt": {
+    "code": 0,
+    "accepted_at": "2026-10-06T15:06:38.471035+08:00"
+  }
+}

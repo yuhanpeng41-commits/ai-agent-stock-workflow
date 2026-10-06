@@ -4,7 +4,21 @@
 
 ## 本次验收结果
 
-已完成本地真实采集、评分、新闻加工和飞书推送，回执 `status=sent`、`code=0`，`run_id=b2fefc387537`。最新代码的 42 项自动化测试已通过，包含交易日历、休市新闻回退和开市自动切换；原始全量采集已独立复验。
+**GitHub Actions 云端 `live` 模式部署已验证**，`workflow_dispatch` 手动触发成功，飞书回执 `status=sent`、`code=0`；用户已确认群内收到新版真实消息。云端休市回退也已验证。最新代码的 42 项自动化测试已通过。
+
+| 云端验收项 | 结果 |
+|---|---|
+| Actions 运行 | [37427321823](https://github.com/yuhanpeng41-commits/ai-agent-stock-workflow/actions/runs/37427321823)，`workflow_dispatch`，`success` |
+| 模式 / 业务 run_id | `live` / `2c99136e1810` |
+| 运行时间 | 2026-10-06 15:03:45，北京时间 |
+| 交易状态 / 行情日期 | 休市 / 2026-09-30，交易日历动态决定 |
+| 榜单 / 摘要 | 183 只股票，Top10，最长 49 字符 |
+| 推送标题 | 【最新交易日数据】A股 AI智能体 · 热度 Top10 |
+| 定时配置 | 每天 UTC 03:00 / 北京时间 11:00；首次实际 schedule 触发尚未记录 |
+
+原始云端报告、实际发送卡片、回执和 GitHub 元数据见 [evidence/cloud-run](evidence/cloud-run/)。接收端已确认，截图文件尚需保存到项目。
+
+以下为首次本地验收记录，保留原样供追溯：
 
 | 项目 | 结果 |
 |---|---|
@@ -19,7 +33,7 @@
 
 **保留的首次验收使用 9 月 30 日真实行情，以历史数据演示模式发送。** 原消息标题为“【历史数据演示】A股 AI智能体 · 热度 Top10”，不代表执行日 11:00 快照。该证据保留原样；最新正式规则见下方，正常休市回退不再标为历史演示。
 
-可提交的原始报告、实际发送卡片和回执见 [evidence/verified-run](evidence/verified-run/)。当前尚缺接收端真实截图；云端运行需先配置 GitHub Secrets，再完成 Actions 验收。
+首次本地验收原始记录见 [evidence/verified-run](evidence/verified-run/)；最终提交以新版云端 `live` 验收为主要证据，正常休市回退不属于历史演示。
 
 ## 交易日与休市规则
 
@@ -45,12 +59,13 @@
 | `stockflow/feishu.py` | 飞书卡片、签名、发送与回执判断 |
 | `stockflow/runner.py` | 流程编排、快照恢复、发送状态 |
 | `stockflow/models.py`、`render.py` | 数据模型和报告输出 |
-| `tests/test_workflow.py` | 自动化测试 |
+| `tests/` | 42 项自动化测试，含交易日历与休市回退 |
 | `scripts/check_config.py` | 检查配置，不打印凭据 |
 | `scripts/verify_artifacts.py` | 验证报告和真实发送回执 |
 | `scripts/pack_submission.py` | 白名单打包及凭据检查 |
 | `.github/workflows/daily.yml` | 每日定时、手动触发及审计产物 |
 | `evidence/verified-run/` | 本次真实运行报告、卡片、回执 |
+| `evidence/cloud-run/` | 新版云端 live 报告、卡片、回执和 GitHub 运行证据 |
 
 ## 本地安装与运行
 
@@ -71,6 +86,9 @@ if (-not (Test-Path -LiteralPath .env)) { Copy-Item .env.example .env }
 ```powershell
 # 正式采集，不发送
 .\.venv\Scripts\python.exe -m stockflow.runner --mode live
+
+# 正式采集并推送，交易日/休市自动判断
+.\.venv\Scripts\python.exe -m stockflow.runner --mode live --send
 
 # 接口最新交易日的真实数据演示，不发送
 .\.venv\Scripts\python.exe -m stockflow.runner --mode replay
@@ -126,15 +144,26 @@ if (-not (Test-Path -LiteralPath .env)) { Copy-Item .env.example .env }
 5. GitHub Actions 可能排队延迟；程序允许北京时间 11:00–11:20 启动，超出窗口停止。报告显示实际采集时间，不能承诺严格准点；严格要求时需改用常驻服务器调度。
 6. 每次 Actions 的 **Artifacts → audit-…** 保存审计产物 30 天，Job summary 展示报告。首次云端执行后应再确认一次定时触发。
 
+本仓库 Secrets 已配置，云端手动运行及真实飞书推送验收已完成。上述步骤保留用于其他环境部署；无须为了本次收尾重复触发发送。schedule 已配置，实际定时首跑尚未记录，不将手动触发等同于定时触发验收。
+
 并发组串行执行，每日发送状态用 Actions cache 恢复。成功状态防止重复发送，`pending/unknown` 阻止送达不明时自动重发，POST 不自动重试。缓存是尽力去重，缓存丢失或进程中断仍可能导致重复，不能承诺跨故障 exactly-once。
+
+### 平台警告处理
+
+本次云端作业成功，两项提示均为非阻塞平台提示，保留已经验证的 Action 版本和 `ubuntu-latest` 配置。
+
+- Node.js 20 deprecated：本次运行注释明确表示相关 Action 的声明目标为 Node.js 20，但实际由平台强制使用 Node.js 24。此提示不属于 Python 业务错误；后续可单独升级 Action 版本并复验，当前不必为消除提示改动流程。参见 [GitHub 官方运行时迁移说明](https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/)。
+- ubuntu-latest migration：通知托管镜像将切换版本；当前运行成功。镜像迁移后检查 Python 安装、依赖和采集即可；如发生兼容问题再固定镜像版本并复验。参见 [官方 runner-images 迁移通知](https://github.com/actions/runner-images/issues/14748)。
 
 ## 真实推送截图
 
-打开添加该机器人的飞书群，找到 **“【历史数据演示】A股 AI智能体 · 热度 Top10”**，正文 `run_id=b2fefc387537`。用 `Win + Shift + S` 截取真实群消息并保存：
+打开飞书群，找到新版云端消息 **“【最新交易日数据】A股 AI智能体 · 热度 Top10”**，正文 `run_id=2c99136e1810`。用 `Win + Shift + S` 截取真实群消息并保存：
 
-1. `evidence/01-feishu-top.png`：群聊名、机器人、标题、数据日期、run_id 和榜单前几项。
+1. `evidence/01-feishu-top.png`：群聊名、机器人、标题、运行时间、行情数据日期、休市状态、run_id 和榜单前几项。
 2. `evidence/02-feishu-bottom.png`：剩余榜单和新闻链接。
 3. `evidence/03-news-link.png`：点击新闻后的文章页面，可选验证图。
+4. `evidence/04-github-actions.png`：上述云端运行页，显示 Success、手动触发、main 分支和运行时间。
+5. `evidence/05-schedule.png`：工作流文件中的 `cron: '0 3 * * *'` 与北京时间注释、`workflow_dispatch`。
 
 上述文件名已加入 Git 提交白名单。不要截机器人设置或 `.env`。本地 `preview.html` 不能代替真实推送截图。回执 `code=0` 证明飞书接受请求，接收端截图证明实际呈现；当前截图尚待补入。
 
@@ -143,6 +172,7 @@ if (-not (Test-Path -LiteralPath .env)) { Copy-Item .env.example .env }
 ```powershell
 .\.venv\Scripts\python.exe -m unittest discover -s tests -v
 .\.venv\Scripts\python.exe scripts\verify_artifacts.py evidence\verified-run
+.\.venv\Scripts\python.exe scripts\verify_artifacts.py evidence\cloud-run
 .\.venv\Scripts\python.exe scripts\pack_submission.py
 ```
 
@@ -154,4 +184,4 @@ if (-not (Test-Path -LiteralPath .env)) { Copy-Item .env.example .env }
 
 **不要提交** `.env`、其他真实凭据、`.venv/`、`.state/`、`outputs/`、缓存、临时依赖和日志。`.env.example` 保持空凭据。清理后仍保留原始成功输出和本地发送状态供复查，它们不进入提交包。
 
-**仍需完成**：配置 GitHub Secrets，完成云端手动执行及定时触发验收；补入飞书真实截图后重新打包。
+**业务开发、云端部署和手动真实推送验收已完成**。提交材料尚需补入实际截图并重新打包；首次自动定时触发尚未记录，待后续 schedule 运行后可补充，无需修改核心业务代码。

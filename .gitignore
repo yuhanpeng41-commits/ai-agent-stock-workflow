@@ -18,4 +18,6 @@ evidence/*.jpeg
 !evidence/01-feishu-top.png
 !evidence/02-feishu-bottom.png
 !evidence/03-news-link.png
+!evidence/04-github-actions.png
+!evidence/05-schedule.png
 !.env.example

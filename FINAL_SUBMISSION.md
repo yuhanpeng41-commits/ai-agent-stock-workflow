@@ -26,38 +26,46 @@
 
 目标仓库：[ai-agent-stock-workflow](https://github.com/yuhanpeng41-commits/ai-agent-stock-workflow)，默认分支 `main`。在仓库 Actions Secrets 配置 `FEISHU_WEBHOOK`；启用签名时再配置 `FEISHU_SECRET`。
 
-[daily.yml](.github/workflows/daily.yml) 包含 `cron: '0 3 * * *'`（UTC 03:00 = 北京时间 11:00）、`workflow_dispatch`，Webhook 从 `${{ secrets.FEISHU_WEBHOOK }}` 读取。Actions 可能排队延迟，程序允许启动延迟最多 20 分钟。配置已核对；Secrets、云端发送及定时运行仍需验收。
+[daily.yml](.github/workflows/daily.yml) 包含 `cron: '0 3 * * *'`（每天 UTC 03:00 = 北京时间 11:00）、`workflow_dispatch`，Webhook 从 `${{ secrets.FEISHU_WEBHOOK }}` 读取。Secrets 已配置，云端部署与手动运行已验证。Actions 可能排队延迟，程序允许启动延迟最多 20 分钟。schedule 已配置；首次实际定时触发尚未记录，不将手动运行当作定时运行证据。
+
+Node.js 20 deprecated 和 ubuntu-latest migration 在本次成功运行中均为非阻塞提示：平台已强制相关 Action 使用 Node.js 24；Ubuntu 提示为镜像迁移通知。本次保留已验证配置，无须立即改动。后续升级 Action 或镜像时单独复验，详见 [README 平台警告处理](README.md#平台警告处理)。
 
 ## 6. 真实飞书推送已验证
 
-本地完整采集、Top10 生成和真实发送成功：
+**GitHub Actions 云端 `live` 部署、`workflow_dispatch` 手动触发、真实飞书推送及休市回退均已验证成功。** 用户已确认飞书群收到新版消息：
 
 | 验收项 | 结果 |
 |---|---|
-| 飞书接受时间 | 2026-10-05 22:08:04，北京时间 |
+| 云端运行 | [37427321823](https://github.com/yuhanpeng41-commits/ai-agent-stock-workflow/actions/runs/37427321823)，`success` |
+| 触发 / 模式 | `workflow_dispatch` / `live` |
+| 运行时间 | 2026-10-06 15:03:45，北京时间 |
+| 飞书接受时间 | 2026-10-06 15:06:38，北京时间 |
 | 回执 | `status=sent`、`code=0` |
-| run_id | `b2fefc387537` |
+| run_id | `2c99136e1810` |
+| 休市/交易状态 | 休市 |
+| 行情数据日期 | 2026-09-30，按日历自动回退最近交易日 |
+| 新闻截止 | 2026-10-06 15:04:02，北京时间；逐股优先运行当天，无则回退 |
 | 成分股 / 榜单 | 183 只 / Top10 |
 | 摘要最大长度 | 49 字符 |
-| Top10 新闻 | 6 只有相关新闻，4 只明确标注暂无新闻 |
+| Top10 新闻 | 10 只均有选定新闻日的相关新闻链接 |
 | 关键词 | 标题与正文包含“A股” |
 
-原始报告、实际发送卡片和回执见 [evidence/verified-run](evidence/verified-run/)。接收端真实截图尚需从飞书群补入，回执不能替代截图。
+原始云端报告、实际发送卡片、成功回执及 GitHub 元数据见 [evidence/cloud-run](evidence/cloud-run/)，已从本次 Actions 审计产物下载并验证一致。接收端已确认收到；截图文件尚需从飞书群补入。
 
-## 7. 历史数据演示说明
+## 7. 行情日期与证据说明
 
-**首次验收因数据源最新交易日为 2026 年 9 月 30 日，使用历史数据演示模式。** 执行日为 10 月 5 日，原始真实消息标题为“【历史数据演示】A股 AI智能体 · 热度 Top10”，该报告、卡片与回执保持原样。
+本次最终截图应使用新版云端真实推送，标题为 **“【最新交易日数据】A股 AI智能体 · 热度 Top10”**，清楚显示运行时间、行情数据日期和休市状态。10 月 6 日休市，最近交易日为 9 月 30 日，属于正常休市回退，不标为历史数据演示。
 
-最新正式规则把正常休市回退标为 **“最新交易日数据”**，不标为历史演示。推送显示运行时间、行情数据日期和休市/交易状态。9 月 30 日仅是首次证据的数据日期，程序没有固定该日期，开市后自动使用新交易日行情。手动 `replay` 仍用于明确的历史回放。
+首次本地 `replay` 验收资料仍保留在 `evidence/verified-run/`，原来的历史演示标题未改写；最终主要证据是新版云端 `live`。程序未固定 9 月 30 日，开市后自动使用新交易日行情。
 
 ## 8. 提交范围
 
-提交：`README.md`、`FINAL_SUBMISSION.md`、`workflow.md`、`docs/workflow.svg`、`stockflow/`、`tests/`、`scripts/`、`requirements.txt`、`.github/workflows/daily.yml`、`.gitignore`、空凭据模板 `.env.example`、`evidence/README.md`、`evidence/verified-run/` 和接收端截图。
+提交：`README.md`、`FINAL_SUBMISSION.md`、`workflow.md`、`docs/workflow.svg`、`stockflow/`、`tests/`、`scripts/`、`requirements.txt`、`.github/workflows/daily.yml`、`.gitignore`、空凭据模板 `.env.example`、`evidence/README.md`、`evidence/cloud-run/`、`evidence/verified-run/` 和实际截图。
 
 不要提交：`.env` 及其他真实凭据、`.venv/`、`.state/`、`outputs/`、`__pycache__/`、临时依赖、缓存、日志。打包工具使用白名单并检查凭据，不将本地运行环境放入提交包。
 
-## 9. 仍需完成
+## 9. 收尾状态
 
-1. 飞书群截取实际机器人消息，保存为 `evidence/01-feishu-top.png`、`evidence/02-feishu-bottom.png`；新闻页面验证图可保存为 `evidence/03-news-link.png`。
-2. 配置 GitHub Secrets，手动以 `live` 模式运行 Actions，检查云端日志、报告和接收端，再确认一次定时触发。
-3. 补入截图后执行 `python scripts/pack_submission.py` 重新打包。详见 [README](README.md)。
+1. 核心业务、GitHub 云端部署、手动触发、真实飞书发送和休市回退验收已完成，本次未修改核心业务或工作流配置。
+2. 实际截图尚未放入项目：飞书卡片上下部分、Actions 成功运行、schedule 配置；新闻打开截图可选。文件名见 [evidence/README](evidence/README.md)。补图后运行 `python scripts/pack_submission.py` 更新提交 ZIP。
+3. 每天北京时间 11:00 的 schedule 已配置。首次实际自动运行记录可在后续补充，无须为本次手动云端验收重新部署。

@@ -7,7 +7,7 @@ import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
 SCREENSHOTS = [f"evidence/{name}.png" for name in (
-    "01-feishu-top", "02-feishu-bottom", "03-news-link")]
+    "01-feishu-top", "02-feishu-bottom", "03-news-link", "04-github-actions", "05-schedule")]
 
 
 def selected_files():
@@ -17,6 +17,7 @@ def selected_files():
         ("stockflow", {".py"}), ("tests", {".py"}), ("scripts", {".py"}),
         (".github/workflows", {".yml", ".yaml"}), ("docs", {".svg"}),
         ("evidence/verified-run", {".json", ".md"}),
+        ("evidence/cloud-run", {".json", ".md"}),
     ):
         names.update(p.relative_to(ROOT).as_posix() for p in (ROOT / directory).iterdir()
                      if p.is_file() and p.suffix in suffixes)
@@ -63,6 +64,14 @@ def main():
     if not (report["run_id"] == receipt["run_id"] and receipt["status"] == "sent"
             and receipt["receipt"]["code"] == 0):
         raise ValueError("Verified-run report and success receipt do not match")
+    cloud_report = json.loads(blobs["evidence/cloud-run/report.json"])
+    cloud_receipt = json.loads(blobs["evidence/cloud-run/receipt.json"])
+    cloud_run = json.loads(blobs["evidence/cloud-run/github-run.json"])
+    if not (cloud_report["run_id"] == cloud_receipt["run_id"] == cloud_run["run_id"]
+            and cloud_report["mode"] == "live" and cloud_report["market_status"] == "closed"
+            and cloud_receipt["status"] == "sent" and cloud_receipt["receipt"]["code"] == 0
+            and cloud_run["event"] == "workflow_dispatch" and cloud_run["conclusion"] == "success"):
+        raise ValueError("Cloud deployment evidence does not match")
     destination = ROOT / "submission"
     destination.mkdir(exist_ok=True)
     archive = destination / "ai-agent-stock-workflow-submission.zip"
@@ -71,15 +80,17 @@ def main():
             output.writestr(f"{ROOT.name}/{name}", data)
     present = [name for name in SCREENSHOTS if name in blobs]
     manifest = {"archive": archive.name, "files": entries,
-                "real_push_run_id": report["run_id"], "screenshots": present,
-                "github_actions_run_verified": False}
+                "real_push_run_id": cloud_report["run_id"], "screenshots": present,
+                "github_actions_run_verified": True, "github_run_id": cloud_run["github_run_id"],
+                "schedule_configured": "0 3 * * *", "schedule_actual_run_verified": False}
     (destination / "SUBMISSION_MANIFEST.json").write_text(
         json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(f"Archive: {archive}")
     print(f"Files: {len(entries)}; credential check: passed")
     if SCREENSHOTS[0] not in present or SCREENSHOTS[1] not in present:
         print("Pending: add actual Feishu screenshots, then run packaging again.")
-    print("Pending: configure GitHub Secrets and verify Actions delivery/scheduled run.")
+    print("Cloud live/manual trigger, real delivery and holiday fallback: verified.")
+    print("Schedule configured; first automatic schedule execution has not been recorded.")
 
 
 if __name__ == "__main__":

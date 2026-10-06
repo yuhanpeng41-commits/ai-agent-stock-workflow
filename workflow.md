@@ -47,3 +47,5 @@ flowchart TD
 - 日历按月动态获取，不硬编码某个交易日；开市后自动要求当天行情。日历或接口失败会终止评分。
 - `--from-report` 可从已保存快照恢复，发送前重新校验评分与新闻。
 - Actions 缓存用于尽力去重；送达不明时需人工确认，避免自动重复发送。
+
+验收状态：新版 `live` 云端部署、`workflow_dispatch`、休市行情/新闻回退和真实飞书推送均已验证，见 [云端运行](https://github.com/yuhanpeng41-commits/ai-agent-stock-workflow/actions/runs/37427321823)。每天北京时间 11:00 的 schedule 已配置，首次实际自动触发尚未记录。

@@ -1,0 +1,37 @@
+{
+  "github_run_id": 37427321823,
+  "url": "https://github.com/yuhanpeng41-commits/ai-agent-stock-workflow/actions/runs/37427321823",
+  "event": "workflow_dispatch",
+  "conclusion": "success",
+  "head_sha": "a58f05141ae82879a0118d17512589769960a5ed",
+  "created_at": "2026-10-06T07:03:30Z",
+  "updated_at": "2026-10-06T07:06:43Z",
+  "artifact_id": 11394569906,
+  "artifact_name": "audit-2026-10-06-live-37427321823-1",
+  "run_id": "2c99136e1810",
+  "mode": "live",
+  "run_at": "2026-10-06T15:03:45.584607+08:00",
+  "quote_date": "2026-09-30",
+  "market_status": "closed",
+  "delivery_status": "sent",
+  "feishu_code": 0,
+  "receiver_confirmed_by_user": true,
+  "schedule_configured": "0 3 * * *",
+  "schedule_actual_run_verified": false,
+  "platform_annotations": [
+    {
+      "annotation_level": "warning",
+      "message": "Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/cache/restore@v4, actions/cache/save@v4, actions/checkout@v4, actions/setup-python@v5, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/"
+    },
+    {
+      "annotation_level": "notice",
+      "message": "\"The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748\""
+    }
+  ],
+  "files": {
+    "report.json": "eebf85f2c78b34380147f4ceefa42b4b74a0fe5b7772822eb3453144fb0b9e91",
+    "report.md": "35ddf059223bb28da811ee4d2217f2e881bb54158951391faeafa195a7303140",
+    "receipt.json": "0505e3392894cb9a4bad2365969c6486a4ce2893e1c7db1047b7fa40c5975440",
+    "feishu-card.json": "11515774b31ea61a27d9e6efbca074d389b5859b932c3e8ef2169f0620e3f747"
+  }
+}
