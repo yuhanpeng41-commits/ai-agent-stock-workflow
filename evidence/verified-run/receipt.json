@@ -1,0 +1,12 @@
+{
+  "status": "sent",
+  "mode": "replay",
+  "run_id": "b2fefc387537",
+  "date": "2026-10-05",
+  "report_status": "ranked",
+  "payload_sha256": "8243a866ba9afa1616d56463c25d41ec23730d804b31b35b0fae9223eca52cf0",
+  "receipt": {
+    "code": 0,
+    "accepted_at": "2026-10-05T22:08:04.996390+08:00"
+  }
+}

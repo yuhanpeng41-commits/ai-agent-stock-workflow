@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1020" viewBox="0 0 1200 1020">
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="#7895bd"/></marker></defs>
+<rect width="1200" height="1020" fill="#0c1425"/>
+<g font-family="Microsoft YaHei, Noto Sans SC, sans-serif" fill="#e9eef7">
+<text x="60" y="60" font-size="28" font-weight="700">A股 AI Agent / 智能体 · 每日热度 Top10</text>
+<text x="60" y="93" font-size="15" fill="#9eb5d4">Codex 协作开发 · Python 数据加工 · GitHub Actions 调度 · 飞书真实推送</text>
+<g fill="#15243e" stroke="#35547c" stroke-width="1.5">
+<rect x="60" y="130" width="720" height="65" rx="12"/>
+<rect x="60" y="230" width="720" height="65" rx="12"/>
+<rect x="60" y="330" width="720" height="80" rx="12"/>
+<rect x="60" y="445" width="720" height="65" rx="12"/>
+<rect x="60" y="545" width="720" height="80" rx="12"/>
+<rect x="60" y="660" width="720" height="65" rx="12"/>
+<rect x="60" y="760" width="720" height="65" rx="12"/>
+<rect x="60" y="860" width="720" height="80" rx="12"/>
+</g>
+<g font-size="19">
+<text x="85" y="169">01  每天 UTC 03:00 / 北京时间 11:00 触发</text>
+<text x="85" y="269">02  测试 + 恢复发送状态 + 查询交易日历</text>
+<text x="85" y="364">03  发现 AI智能体概念板块，抓取完整成分股和行情</text>
+<text x="85" y="390" font-size="14" fill="#9eb5d4">列表失败 → 同源数据中心 + 批量报价；验证覆盖和行情日期</text>
+<text x="85" y="484">04  全量新闻：当天优先；休市无当天新闻则回退</text>
+<text x="85" y="580">05  百分位归一化后，计算热度综合分</text>
+<text x="85" y="606" font-size="16" fill="#6cddb6">成交额 40% + 涨跌幅 30% + 主力净流入 20% + 新闻提及 10%</text>
+<text x="85" y="699">06  取 Top10，生成 &lt;50 字摘要 + 关键新闻链接</text>
+<text x="85" y="799">07  保存报告，明示运行时间、行情日期、休市/交易状态</text>
+<text x="85" y="894">08  正文包含“A股”，真实发送飞书，核对业务回执 code=0</text>
+<text x="85" y="920" font-size="14" fill="#9eb5d4">保存 run_id / receipt / 每日状态 → 在飞书接收群截图验收</text>
+</g>
+<g stroke="#7895bd" stroke-width="2" fill="none" marker-end="url(#arrow)">
+<path d="M420 195V230"/><path d="M420 295V330"/><path d="M420 410V445"/>
+<path d="M420 510V545"/><path d="M420 625V660"/><path d="M420 725V760"/><path d="M420 825V860"/>
+<path d="M780 263H850"/><path d="M780 370H850"/><path d="M780 900H850"/>
+</g>
+<g fill="#2a2430" stroke="#8c6c45"><rect x="850" y="220" width="290" height="90" rx="12"/><rect x="850" y="335" width="290" height="130" rx="12"/><rect x="850" y="835" width="290" height="125" rx="12"/></g>
+<g font-size="16" fill="#ffce80">
+<text x="872" y="253">已成功：跳过重复发送</text><text x="872" y="279">超出调度窗口：停止</text>
+<text x="872" y="369">交易日：使用当天最新行情</text><text x="872" y="395">休市：使用最新交易日数据</text>
+<text x="872" y="423">行情日期不符日历：停止</text><text x="872" y="448" font-size="13">正常休市回退不标为历史演示</text>
+<text x="872" y="870">明确拒绝：记录失败，可修复</text><text x="872" y="897">送达未知：停止自动重发</text><text x="872" y="924">成功：保存回执，更新每日状态</text>
+</g>
+<text x="60" y="986" font-size="14" fill="#9eb5d4">Actions 可能排队延迟；严格准点需使用常驻服务器调度。新闻无结果时明确标注，不生成虚假链接。</text>
+</g></svg>

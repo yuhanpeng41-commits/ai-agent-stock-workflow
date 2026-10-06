@@ -1,0 +1,101 @@
+name: AI Agent Stock Daily
+
+on:
+  schedule:
+    - cron: '0 3 * * *' # UTC 03:00 = Asia/Shanghai 11:00, every calendar day.
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'live=正式；replay=真实历史行情演示；demo=模拟数据'
+        type: choice
+        default: live
+        options: [live, replay, demo]
+      send:
+        description: '发送到 Secrets 中配置的飞书群（演示会显著标注）'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ai-agent-stock-daily
+  cancel-in-progress: false
+
+jobs:
+  daily:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      TZ: Asia/Shanghai
+      PYTHONUNBUFFERED: '1'
+      MODE: ${{ github.event_name == 'schedule' && 'live' || inputs.mode }}
+      SEND: ${{ github.event_name == 'schedule' && 'true' || inputs.send }}
+      EVENT_NAME: ${{ github.event_name }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Unit tests
+        run: python -m unittest discover -s tests -v
+      - name: Beijing date
+        id: date
+        run: echo "day=$(TZ=Asia/Shanghai date +%F)" >> "$GITHUB_OUTPUT"
+      - name: Restore delivery state
+        id: delivery-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: .state
+          key: feishu-delivery-v1-${{ steps.date.outputs.day }}-${{ env.MODE }}
+      - name: Collect, rank and optionally deliver
+        env:
+          FEISHU_WEBHOOK: ${{ secrets.FEISHU_WEBHOOK }}
+          FEISHU_SECRET: ${{ secrets.FEISHU_SECRET }}
+          CONCEPT_NAME: ${{ vars.CONCEPT_NAME }}
+          MAX_SCHEDULE_DELAY_MINUTES: '20'
+        run: |
+          args=(--mode "$MODE")
+          if [[ "$SEND" == "true" ]]; then args+=(--send); fi
+          if [[ "$EVENT_NAME" == "schedule" ]]; then args+=(--scheduled); fi
+          python -m stockflow.runner "${args[@]}"
+      - name: Decide whether state must be retained
+        if: always()
+        id: retain
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          keep = any(json.loads(p.read_text())['status'] in {'sent', 'pending', 'unknown'} for p in Path('.state').glob('*.json'))
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+              f.write(f"keep={'true' if keep else 'false'}\n")
+          PY
+      - name: Retain accepted or uncertain delivery state
+        if: always() && steps.retain.outputs.keep == 'true' && steps.delivery-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: .state
+          key: feishu-delivery-v1-${{ steps.date.outputs.day }}-${{ env.MODE }}
+      - name: Upload audit records
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: audit-${{ steps.date.outputs.day }}-${{ env.MODE }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            outputs/
+            .state/
+          include-hidden-files: true
+          if-no-files-found: ignore
+          retention-days: 30
+      - name: Job summary
+        if: always()
+        run: |
+          if [[ -f "outputs/$MODE/report.md" ]]; then
+            cat "outputs/$MODE/report.md" >> "$GITHUB_STEP_SUMMARY"
+          fi
+          if [[ -f "outputs/$MODE/error.json" ]]; then
+            cat "outputs/$MODE/error.json" >> "$GITHUB_STEP_SUMMARY"
+          fi
